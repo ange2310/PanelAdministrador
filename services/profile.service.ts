@@ -1,6 +1,6 @@
 // services/profile.service.ts
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://api.devcorebits.com';
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://api.devcorebits.com';
 
 export const profileService = {
   /**
@@ -57,18 +57,26 @@ export const profileService = {
    * Actualiza los datos del perfil
    * @param userId - ID del usuario
    * @param data - Datos a actualizar
+   * @param token - Token de autenticación (opcional)
    * @returns Promise con los datos actualizados
    */
   async updateProfile(userId: string, data: {
     nombre?: string;
     telefono?: string;
     direccion?: string;
-  }): Promise<any> {
+    fechaNacimiento?: string;
+  }, token?: string): Promise<any> {
+    const headers: HeadersInit = {
+      'Content-Type': 'application/json',
+    };
+
+    if (token) {
+      headers['Authorization'] = `Bearer ${token}`;
+    }
+
     const response = await fetch(`${API_URL}/api/usuarios/${userId}`, {
       method: 'PATCH',
-      headers: {
-        'Content-Type': 'application/json',
-      },
+      headers,
       body: JSON.stringify(data),
       credentials: 'include',
     });
@@ -94,6 +102,54 @@ export const profileService = {
     if (!response.ok) {
       const error = await response.json();
       throw new Error(error.message || 'Error al obtener el perfil');
+    }
+
+    return response.json();
+  },
+
+  /**
+   * Actualiza el correo electrónico del usuario
+   * @param data - Objeto con el nuevo email
+   * @param token - Token de autenticación
+   * @returns Promise con la respuesta
+   */
+  async updateEmail(data: { email: string }, token: string): Promise<any> {
+    const response = await fetch(`${API_URL}/api/usuarios-autenticacion/actualizar-email`, {
+      method: 'PATCH',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`,
+      },
+      body: JSON.stringify(data),
+    });
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.message || 'Error al actualizar el correo');
+    }
+
+    return response.json();
+  },
+
+  /**
+   * Actualiza la contraseña del usuario
+   * @param data - Objeto con la nueva contraseña
+   * @param token - Token de autenticación
+   * @returns Promise con la respuesta
+   */
+  async updatePassword(data: { password: string }, token: string): Promise<any> {
+    const response = await fetch(`${API_URL}/api/usuarios-autenticacion/cambiar-contrasena`, {
+      method: 'PATCH',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`,
+      },
+      body: JSON.stringify(data),
+    });
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.message || 'Error al actualizar la contraseña');
     }
 
     return response.json();

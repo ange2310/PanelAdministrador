@@ -6,26 +6,31 @@ export const profileService = {
   /**
    * Obtiene la URL de la foto de perfil de un usuario
    * @param userId - ID del usuario
+   * @param timestamp - Timestamp opcional para evitar caché
    * @returns URL de la foto de perfil
    */
-  getProfilePhotoUrl(userId: string): string {
-    return `${API_URL}/api/usuarios/${userId}/foto`;
+  getProfilePhotoUrl(userId: string, timestamp?: number): string {
+    const baseUrl = `${API_URL}/api/usuarios/${userId}/foto`;
+    return timestamp ? `${baseUrl}?t=${timestamp}` : baseUrl;
   },
 
   /**
    * Sube una nueva foto de perfil
    * @param userId - ID del usuario
    * @param file - Archivo de imagen
+   * @param token - Token de autenticación
    * @returns Promise con la respuesta del servidor
    */
-  async uploadProfilePhoto(userId: string, file: File): Promise<{ url: string }> {
+  async uploadProfilePhoto(userId: string, file: File, token: string): Promise<{ url: string }> {
     const formData = new FormData();
     formData.append('photo', file);
 
     const response = await fetch(`${API_URL}/api/usuarios/${userId}/foto`, {
       method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+      },
       body: formData,
-      credentials: 'include',
     });
 
     if (!response.ok) {
@@ -39,12 +44,15 @@ export const profileService = {
   /**
    * Elimina la foto de perfil
    * @param userId - ID del usuario
+   * @param token - Token de autenticación
    * @returns Promise con la respuesta del servidor
    */
-  async deleteProfilePhoto(userId: string): Promise<void> {
+  async deleteProfilePhoto(userId: string, token: string): Promise<void> {
     const response = await fetch(`${API_URL}/api/usuarios/${userId}/foto`, {
       method: 'DELETE',
-      credentials: 'include',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+      },
     });
 
     if (!response.ok) {

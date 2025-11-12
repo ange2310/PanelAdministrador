@@ -112,15 +112,14 @@ function AdminDashboard() {
     if (!selectedDoctor) return
 
     try {
-      if (data.status === 'inactivo' && selectedDoctor.status === 'activo') {
-        await apiService.toggleDoctorStatus(selectedDoctor.idUsuario, selectedDoctor.status)
+      if (data.status === 'inactivo') {
+        await apiService.updateDoctor(selectedDoctor.idUsuario, { status: 'inactivo' })
         showSuccess("Médico desactivado exitosamente")
+        setIsModalOpen(false)
+        loadDoctors()
       } else {
-        showError("El backend solo permite desactivar usuarios")
+        showError("Solo se puede desactivar usuarios")
       }
-      
-      setIsModalOpen(false)
-      loadDoctors()
     } catch (error: any) {
       showError(error.message || "Error al actualizar médico")
     }

@@ -130,7 +130,7 @@ export default function DoctorModal({
               <p className="text-red-800 text-sm font-medium leading-relaxed">{error}</p>
             </div>
           )}
-
+          
           {/* Nombre */}
           <div className="space-y-2">
             <label className="block text-sm font-semibold text-slate-700 mb-2.5">
@@ -142,9 +142,14 @@ export default function DoctorModal({
               value={formData.nombre}
               onChange={(e) => setFormData({ ...formData, nombre: e.target.value })}
               placeholder="Dr. Juan Pérez"
-              className="w-full px-4 py-3 text-base border-2 border-slate-200 rounded-xl focus:border-purple-500 focus:ring-4 focus:ring-purple-100 outline-none transition-all duration-200 placeholder:text-slate-400"
-              disabled={isSubmitting}
+              className="w-full px-4 py-3 text-base border-2 border-slate-200 rounded-xl focus:border-purple-500 focus:ring-4 focus:ring-purple-100 outline-none transition-all duration-200 placeholder:text-slate-400 disabled:bg-gray-100 disabled:cursor-not-allowed"
+              disabled={isEditMode || isSubmitting}
             />
+            {isEditMode && (
+              <p className="text-xs text-gray-500 mt-1">
+                El nombre no se puede editar. Solo puedes cambiar el estado.
+              </p>
+            )}
           </div>
 
           {/* Correo - solo en modo invitar */}

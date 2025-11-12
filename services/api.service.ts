@@ -108,14 +108,29 @@ class ApiService {
   }
 
   async updateDoctor(doctorId: string, data: UpdateDoctorDto): Promise<any> {
-    console.warn('ADVERTENCIA: El backend no soporta actualización de perfil')
-    console.log('Solo se puede cambiar estado a inactivo')
+    console.log('Intentando actualizar médico:', doctorId, data)
     
     if (data.status === 'inactivo') {
-      return this.toggleDoctorStatus(doctorId, 'activo')
+      console.log('Desactivando cuenta en lugar de actualizar...')
+      
+      try {
+        const response = await fetch(`${this.baseUrl}/api/usuarios-autenticacion/cuentaInactiva`, {
+          method: 'PATCH',
+          headers: this.getAuthHeaders(),
+          body: JSON.stringify({ userId: doctorId }),
+        })
+
+        const result = await this.handleResponse(response)
+        console.log('Cuenta desactivada exitosamente')
+        
+        return result
+      } catch (error: any) {
+        console.error('Error al desactivar:', error)
+        throw error
+      }
     }
     
-    throw new Error('El backend solo permite desactivar usuarios, no editar otros campos')
+    throw new Error('El backend solo permite desactivar usuarios')
   }
 
   async deleteDoctor(doctorId: string): Promise<any> {

@@ -51,10 +51,40 @@ class ApiService {
   }
 
   /**
+   * Manejar errores de respuesta
+   */
+  private async handleResponse(response: Response) {
+    if (!response.ok) {
+      let errorMessage = 'Error en la solicitud'
+      
+      try {
+        const errorData = await response.json()
+        console.error('❌ Error del servidor:', errorData)
+        errorMessage = errorData.message || errorData.error || errorMessage
+      } catch (e) {
+        // Si no se puede parsear el JSON, usar el texto de respuesta
+        try {
+          const errorText = await response.text()
+          console.error('❌ Error del servidor (texto):', errorText)
+          if (errorText) errorMessage = errorText
+        } catch (e2) {
+          console.error('❌ No se pudo leer el error')
+        }
+      }
+      
+      throw new Error(errorMessage)
+    }
+    
+    return response.json()
+  }
+
+  /**
    * Crear nuevo médico
    */
   async createDoctor(data: CreateDoctorDto): Promise<any> {
     try {
+      console.log('🚀 Creando médico:', data)
+      
       const response = await fetch(`${this.baseUrl}/api/usuarios-autenticacion/crearUsuario`, {
         method: 'POST',
         headers: this.getAuthHeaders(),
@@ -64,19 +94,14 @@ class ApiService {
           status: data.status || 'activo',
           correo: data.correo,
           contrasenia: data.contrasenia,
-          rol: 'medico', // Siempre médico
+          rol: 'medico',
         }),
       })
 
-      if (!response.ok) {
-        const error = await response.json()
-        throw new Error(error.message || 'Error al crear médico')
-      }
-
-      return await response.json()
+      return await this.handleResponse(response)
     } catch (error: any) {
-      console.error('Error en createDoctor:', error)
-      throw new Error(error.message || 'Error al crear médico')
+      console.error('💥 Error en createDoctor:', error)
+      throw error
     }
   }
 
@@ -85,22 +110,22 @@ class ApiService {
    */
   async getAllDoctors(): Promise<Doctor[]> {
     try {
+      console.log('📋 Obteniendo lista de médicos...')
+      
       const response = await fetch(`${this.baseUrl}/api/usuarios-autenticacion/buscarUsuarios`, {
         method: 'GET',
         headers: this.getAuthHeaders(),
       })
 
-      if (!response.ok) {
-        throw new Error('Error al listar médicos')
-      }
-
-      const data = await response.json()
+      const data = await this.handleResponse(response)
       
       // Filtrar solo los médicos
       const doctors = data.usuarios?.filter((user: any) => user.rol === 'medico') || []
+      console.log(`✅ ${doctors.length} médicos encontrados`)
+      
       return doctors
     } catch (error: any) {
-      console.error('Error en getAllDoctors:', error)
+      console.error('💥 Error en getAllDoctors:', error)
       throw error
     }
   }
@@ -110,6 +135,8 @@ class ApiService {
    */
   async getDoctorById(doctorId: string): Promise<Doctor> {
     try {
+      console.log('🔍 Obteniendo médico ID:', doctorId)
+      
       const response = await fetch(
         `${this.baseUrl}/api/usuarios-autenticacion/buscarUsuario/${doctorId}`,
         {
@@ -118,14 +145,10 @@ class ApiService {
         }
       )
 
-      if (!response.ok) {
-        throw new Error('Error al obtener médico')
-      }
-
-      const data = await response.json()
+      const data = await this.handleResponse(response)
       return data.usuarios?.[0]
     } catch (error: any) {
-      console.error('Error en getDoctorById:', error)
+      console.error('💥 Error en getDoctorById:', error)
       throw error
     }
   }
@@ -135,23 +158,40 @@ class ApiService {
    */
   async updateDoctor(doctorId: string, data: UpdateDoctorDto): Promise<any> {
     try {
+      console.log('🔄 Actualizando médico:', doctorId, data)
+      
+      // Construir el body solo con los campos que están presentes
+      const updateData: any = {}
+      
+      if (data.nombre !== undefined) {
+        updateData.nombre = data.nombre
+      }
+      
+      if (data.fechaNacimiento !== undefined) {
+        updateData.fechaNacimiento = data.fechaNacimiento
+      }
+      
+      if (data.status !== undefined) {
+        updateData.status = data.status
+      }
+
+      console.log('📦 Datos a enviar:', updateData)
+      
       const response = await fetch(
         `${this.baseUrl}/api/usuarios-autenticacion/actualizarPerfil/${doctorId}`,
         {
           method: 'PATCH',
           headers: this.getAuthHeaders(),
-          body: JSON.stringify(data),
+          body: JSON.stringify(updateData),
         }
       )
 
-      if (!response.ok) {
-        const error = await response.json()
-        throw new Error(error.message || 'Error al actualizar médico')
-      }
-
-      return await response.json()
+      const result = await this.handleResponse(response)
+      console.log('✅ Médico actualizado exitosamente')
+      
+      return result
     } catch (error: any) {
-      console.error('Error en updateDoctor:', error)
+      console.error('💥 Error en updateDoctor:', error)
       throw error
     }
   }
@@ -161,6 +201,8 @@ class ApiService {
    */
   async deleteDoctor(doctorId: string): Promise<any> {
     try {
+      console.log('🗑️ Eliminando médico:', doctorId)
+      
       const response = await fetch(
         `${this.baseUrl}/api/usuarios-autenticacion/borrarPerfil/${doctorId}`,
         {
@@ -169,14 +211,12 @@ class ApiService {
         }
       )
 
-      if (!response.ok) {
-        const error = await response.json()
-        throw new Error(error.message || 'Error al eliminar médico')
-      }
-
-      return await response.json()
+      const result = await this.handleResponse(response)
+      console.log('✅ Médico eliminado exitosamente')
+      
+      return result
     } catch (error: any) {
-      console.error('Error en deleteDoctor:', error)
+      console.error('💥 Error en deleteDoctor:', error)
       throw error
     }
   }
@@ -186,74 +226,73 @@ class ApiService {
    */
   async toggleDoctorStatus(doctorId: string, currentStatus: string): Promise<any> {
     const newStatus = currentStatus === 'activo' ? 'inactivo' : 'activo'
+    console.log(`🔀 Cambiando estado de ${currentStatus} a ${newStatus}`)
+    
     return this.updateDoctor(doctorId, { status: newStatus })
   }
-  //Método de invitar doctor
+
+  /**
+   * Invitar doctor
+   */
   async inviteDoctor(data: { nombreCompleto: string; email: string; rol: string }) {
-  try {
-    const response = await fetch(`${this.baseUrl}/api/usuarios-autenticacion/crearInvitacion`, {
-      method: 'POST',
-      headers: this.getAuthHeaders(),
-      body: JSON.stringify({
-        nombreCompleto: data.nombreCompleto,
-        email:data.email,
-        rol: data.rol,
-        idMedico:null //es null porque el admin invita médicos
-      }),
-    })
-
-    const result = await response.json()
-
-    if (!response.ok) {
-      //const error = await response.json()
-      throw new Error(result.message || 'Error al invitar médico')
-    }
-    return result
-
-    //return await response.json()
-  } catch (error: any) {
-    console.error('Error en inviteDoctor:', error)
-    throw new Error(error.message || 'Error al invitar médico')
-  }
-}
-//Método para verificar invitación
-async verificarInvitacion(token: string) {
     try {
+      console.log('📧 Enviando invitación a:', data.email)
+      
+      const response = await fetch(`${this.baseUrl}/api/usuarios-autenticacion/crearInvitacion`, {
+        method: 'POST',
+        headers: this.getAuthHeaders(),
+        body: JSON.stringify({
+          nombreCompleto: data.nombreCompleto,
+          email: data.email,
+          rol: data.rol,
+          idMedico: null // es null porque el admin invita médicos
+        }),
+      })
+
+      const result = await this.handleResponse(response)
+      console.log('✅ Invitación enviada exitosamente')
+      
+      return result
+    } catch (error: any) {
+      console.error('💥 Error en inviteDoctor:', error)
+      throw error
+    }
+  }
+
+  /**
+   * Verificar invitación
+   */
+  async verificarInvitacion(token: string) {
+    try {
+      console.log('🔍 Verificando token de invitación...')
+      
       const response = await fetch(
         `${this.baseUrl}/api/usuarios-autenticacion/verificarToken?token=${token}`,
         {
           method: 'GET',
           headers: {
             'Content-Type': 'application/json',
-            'Acept' : 'application/json',
+            'Accept': 'application/json',
           },
         }
       )
 
-      const result = await response.json()
+      const data = await this.handleResponse(response)
+      console.log('✅ Token válido:', data)
 
-      if (!response.ok) {
-        throw new Error(result.message || 'Token inválido o expirado')
+      return {
+        email: data.invitacion?.correo || data.invitacion?.email,
+        rol: data.invitacion?.rol,
+        nombreCompleto: data.invitacion?.nombreCompleto,
+        // idMedico: data.invitacion?.idMedico || undefined
       }
-
-      const data = await response.json()
-      console.log('Token valido:', data)
-
-      return{
-        email: data.invitacon.correo,
-        rol:data.invitacion.rol,
-        nombreCompleto: data.invitacion.nombreCompleto,
-        //idMedico: data.invitacion.idMedico ||undefined
-      }
-
-      
     } catch (error: any) {
-      console.error('Error en verificarInvitacion:', error)
-      throw new Error(error.message || 'Token inválido')
+      console.error('💥 Error en verificarInvitacion:', error)
+      throw error
     }
   }
 
-/**
+  /**
    * Registrar médico (completar registro después de invitación)
    */
   async registrarMedico(data: {
@@ -264,6 +303,8 @@ async verificarInvitacion(token: string) {
     rol: string
   }) {
     try {
+      console.log('📝 Registrando médico:', data.correo)
+      
       const response = await fetch(`${this.baseUrl}/api/usuarios-autenticacion/signUp`, {
         method: 'POST',
         headers: {
@@ -272,19 +313,15 @@ async verificarInvitacion(token: string) {
         body: JSON.stringify(data),
       })
 
-      const result = await response.json()
-
-      if (!response.ok) {
-        throw new Error(result.message || 'Error al completar registro')
-      }
-
+      const result = await this.handleResponse(response)
+      console.log('✅ Médico registrado exitosamente')
+      
       return result
     } catch (error: any) {
-      console.error('Error en registrarMedico:', error)
-      throw new Error(error.message || 'Error al completar registro')
+      console.error('💥 Error en registrarMedico:', error)
+      throw error
     }
   }
-
 }
 
 export const apiService = new ApiService()

@@ -8,7 +8,7 @@ const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000'
 
 export interface CreateDoctorDto {
   nombre: string
-  edad?: number
+  fechaNacimiento?: string
   correo: string
   contrasenia: string
   rol: 'medico'
@@ -17,14 +17,14 @@ export interface CreateDoctorDto {
 
 export interface UpdateDoctorDto {
   nombre?: string
-  edad?: number
+  fechaNacimiento?: string
   status?: string
 }
 
 export interface Doctor {
   idUsuario: string
   nombre: string
-  edad?: number
+  fechaNacimiento?: string
   correo: string
   rol: string
   status: string
@@ -60,7 +60,7 @@ class ApiService {
         headers: this.getAuthHeaders(),
         body: JSON.stringify({
           nombre: data.nombre,
-          edad: data.edad,
+          fechaNacimiento: data.fechaNacimiento,
           status: data.status || 'activo',
           correo: data.correo,
           contrasenia: data.contrasenia,
@@ -194,15 +194,23 @@ class ApiService {
     const response = await fetch(`${this.baseUrl}/api/usuarios-autenticacion/crearInvitacion`, {
       method: 'POST',
       headers: this.getAuthHeaders(),
-      body: JSON.stringify(data),
+      body: JSON.stringify({
+        nombreCompleto: data.nombreCompleto,
+        email:data.email,
+        rol: data.rol,
+        idMedico:null //es null porque el admin invita médicos
+      }),
     })
 
-    if (!response.ok) {
-      const error = await response.json()
-      throw new Error(error.message || 'Error al invitar médico')
-    }
+    const result = await response.json()
 
-    return await response.json()
+    if (!response.ok) {
+      //const error = await response.json()
+      throw new Error(result.message || 'Error al invitar médico')
+    }
+    return result
+
+    //return await response.json()
   } catch (error: any) {
     console.error('Error en inviteDoctor:', error)
     throw new Error(error.message || 'Error al invitar médico')
@@ -210,14 +218,72 @@ class ApiService {
 }
 //Método para verificar invitación
 async verificarInvitacion(token: string) {
-  const res = await fetch(
-    `${this.baseUrl}/usuarios-autenticacion/verificarToken?token=${token}`
-  );
-  if (!res.ok) throw new Error("Token inválido");
-  return res.json();
-}
+    try {
+      const response = await fetch(
+        `${this.baseUrl}/api/usuarios-autenticacion/verificarToken?token=${token}`,
+        {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json',
+            'Acept' : 'application/json',
+          },
+        }
+      )
 
+      const result = await response.json()
 
+      if (!response.ok) {
+        throw new Error(result.message || 'Token inválido o expirado')
+      }
+
+      const data = await response.json()
+      console.log('Token valido:', data)
+
+      return{
+        email: data.invitacon.correo,
+        rol:data.invitacion.rol,
+        nombreCompleto: data.invitacion.nombreCompleto,
+        //idMedico: data.invitacion.idMedico ||undefined
+      }
+
+      
+    } catch (error: any) {
+      console.error('Error en verificarInvitacion:', error)
+      throw new Error(error.message || 'Token inválido')
+    }
+  }
+
+/**
+   * Registrar médico (completar registro después de invitación)
+   */
+  async registrarMedico(data: {
+    nombre: string
+    fechaNacimiento?: string
+    correo: string
+    contrasenia: string
+    rol: string
+  }) {
+    try {
+      const response = await fetch(`${this.baseUrl}/api/usuarios-autenticacion/signUp`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(data),
+      })
+
+      const result = await response.json()
+
+      if (!response.ok) {
+        throw new Error(result.message || 'Error al completar registro')
+      }
+
+      return result
+    } catch (error: any) {
+      console.error('Error en registrarMedico:', error)
+      throw new Error(error.message || 'Error al completar registro')
+    }
+  }
 
 }
 

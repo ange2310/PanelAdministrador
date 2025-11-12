@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { X, AlertCircle, User, Mail } from "lucide-react"
+import { X, AlertCircle, User, Mail, UserCheck } from "lucide-react"
 
 interface DoctorModalProps {
   isOpen: boolean
@@ -96,35 +96,45 @@ export default function DoctorModal({
   if (!isOpen) return null
 
   return (
-    <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-      <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full">
+    <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 animate-in fade-in duration-200">
+      <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full transform animate-in zoom-in-95 duration-200">
 
         {/* Header */}
-        <div className="bg-gradient-to-r from-purple-600 to-purple-700 px-6 py-5 rounded-t-2xl flex justify-between items-center">
-          <h2 className="text-xl font-bold text-white">
-            {isEditMode ? "Editar Médico" : "Invitar Médico"}
-          </h2>
+        <div className="bg-gradient-to-r from-purple-600 via-purple-600 to-purple-700 px-8 py-6 rounded-t-2xl flex justify-between items-center">
+          <div className="flex items-center gap-3">
+            <div className="p-2 bg-white/20 rounded-lg">
+              {isEditMode ? (
+                <UserCheck className="w-5 h-5 text-white" />
+              ) : (
+                <User className="w-5 h-5 text-white" />
+              )}
+            </div>
+            <h2 className="text-2xl font-bold text-white tracking-tight">
+              {isEditMode ? "Editar Médico" : "Invitar Médico"}
+            </h2>
+          </div>
           <button
             onClick={handleClose}
             disabled={isSubmitting}
-            className="p-2 hover:bg-white/20 rounded-lg transition-colors disabled:opacity-50"
+            className="p-2 hover:bg-white/20 rounded-lg transition-all duration-200 disabled:opacity-50"
+            aria-label="Cerrar"
           >
             <X className="w-5 h-5 text-white" />
           </button>
         </div>
 
-        <form onSubmit={handleSubmit} className="p-6 space-y-4">
+        <form onSubmit={handleSubmit} className="p-8 space-y-6">
           {error && (
-            <div className="bg-red-50 border border-red-200 rounded-lg p-3 flex items-start gap-2">
+            <div className="bg-red-50 border-l-4 border-red-500 rounded-lg p-4 flex items-start gap-3 animate-in slide-in-from-top-2 duration-300">
               <AlertCircle className="w-5 h-5 text-red-600 flex-shrink-0 mt-0.5" />
-              <p className="text-red-800 text-sm">{error}</p>
+              <p className="text-red-800 text-sm font-medium leading-relaxed">{error}</p>
             </div>
           )}
 
           {/* Nombre */}
-          <div>
-            <label className="block text-sm font-medium text-slate-700 mb-2">
-              <User className="w-4 h-4 inline mr-1" />
+          <div className="space-y-2">
+            <label className="block text-sm font-semibold text-slate-700 mb-2.5">
+              <User className="w-4 h-4 inline mr-2 mb-0.5" />
               Nombre Completo <span className="text-red-500">*</span>
             </label>
             <input
@@ -132,16 +142,16 @@ export default function DoctorModal({
               value={formData.nombre}
               onChange={(e) => setFormData({ ...formData, nombre: e.target.value })}
               placeholder="Dr. Juan Pérez"
-              className="w-full px-4 py-2.5 border-2 border-slate-200 rounded-lg focus:border-purple-500 focus:ring-4 focus:ring-purple-100 outline-none transition-all"
+              className="w-full px-4 py-3 text-base border-2 border-slate-200 rounded-xl focus:border-purple-500 focus:ring-4 focus:ring-purple-100 outline-none transition-all duration-200 placeholder:text-slate-400"
               disabled={isSubmitting}
             />
           </div>
 
           {/* Correo - solo en modo invitar */}
           {!isEditMode && (
-            <div>
-              <label className="block text-sm font-medium text-slate-700 mb-2">
-                <Mail className="w-4 h-4 inline mr-1" />
+            <div className="space-y-2">
+              <label className="block text-sm font-semibold text-slate-700 mb-2.5">
+                <Mail className="w-4 h-4 inline mr-2 mb-0.5" />
                 Correo Electrónico <span className="text-red-500">*</span>
               </label>
               <input
@@ -149,7 +159,7 @@ export default function DoctorModal({
                 value={formData.correo}
                 onChange={(e) => setFormData({ ...formData, correo: e.target.value })}
                 placeholder="doctor@ejemplo.com"
-                className="w-full px-4 py-2.5 border-2 border-slate-200 rounded-lg focus:border-purple-500 focus:ring-4 focus:ring-purple-100 outline-none transition-all"
+                className="w-full px-4 py-3 text-base border-2 border-slate-200 rounded-xl focus:border-purple-500 focus:ring-4 focus:ring-purple-100 outline-none transition-all duration-200 placeholder:text-slate-400"
                 disabled={isSubmitting}
               />
             </div>
@@ -157,37 +167,38 @@ export default function DoctorModal({
 
           {/* Estado - solo en modo editar */}
           {isEditMode && (
-            <div>
-              <label className="block text-sm font-medium text-slate-700 mb-2">
+            <div className="space-y-2">
+              <label className="block text-sm font-semibold text-slate-700 mb-2.5">
+                <AlertCircle className="w-4 h-4 inline mr-2 mb-0.5" />
                 Estado
               </label>
               <select
                 value={formData.status}
                 onChange={(e) => setFormData({ ...formData, status: e.target.value })}
-                className="w-full px-4 py-2.5 border-2 border-slate-200 rounded-lg focus:border-purple-500 focus:ring-4 focus:ring-purple-100 outline-none transition-all"
+                className="w-full px-4 py-3 text-base border-2 border-slate-200 rounded-xl focus:border-purple-500 focus:ring-4 focus:ring-purple-100 outline-none transition-all duration-200 bg-white"
                 disabled={isSubmitting}
               >
-                <option value="activo">Activo</option>
-                <option value="invitado">Invitado</option>
-                <option value="inactivo">Inactivo</option>
+                <option value="activo">✓ Activo</option>
+                <option value="invitado">⏳ Invitado</option>
+                <option value="inactivo">✕ Inactivo</option>
               </select>
             </div>
           )}
 
           {/* Actions */}
-          <div className="flex gap-3 pt-4">
+          <div className="flex gap-3 pt-6">
             <button
               type="button"
               onClick={handleClose}
               disabled={isSubmitting}
-              className="flex-1 px-4 py-2.5 bg-slate-100 text-slate-700 rounded-lg hover:bg-slate-200 transition-colors font-medium disabled:opacity-50"
+              className="flex-1 px-5 py-3 text-base bg-slate-100 text-slate-700 rounded-xl hover:bg-slate-200 active:scale-98 transition-all duration-200 font-semibold disabled:opacity-50"
             >
               Cancelar
             </button>
             <button
               type="submit"
               disabled={isSubmitting}
-              className="flex-1 px-4 py-2.5 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+              className="flex-1 px-5 py-3 text-base bg-gradient-to-r from-purple-600 to-purple-700 text-white rounded-xl hover:from-purple-700 hover:to-purple-800 active:scale-98 transition-all duration-200 font-semibold disabled:opacity-50 disabled:cursor-not-allowed shadow-lg shadow-purple-500/30"
             >
               {isSubmitting ? "Guardando..." : isEditMode ? "Actualizar" : "Enviar Invitación"}
             </button>

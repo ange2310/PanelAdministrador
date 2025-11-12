@@ -26,27 +26,7 @@ export function DashboardHeader() {
           <Image src="/logo.svg" alt="Logo" width={40} height={40} className="w-8 h-8 sm:w-10 sm:h-10 object-contain" />
         </div>
 
-        {/* Navegación Principal */}
-        <nav className="hidden md:flex items-center gap-1 lg:gap-2">
-          {navItems.map(({ id, label, icon: Icon }) => (
-            <Button
-              key={id}
-              variant="ghost"
-              onClick={() => setActiveTab(id)}
-              className={`
-                flex items-center rounded-full px-3 lg:px-4 text-sm
-                transition-all duration-300 ease-in-out
-                ${activeTab === id
-                  ? "bg-purple-100 text-purple-600 scale-105"
-                  : "text-gray-600 hover:bg-purple-50 hover:text-purple-600"
-                }
-              `}
-            >
-              <Icon className="w-4 h-4 mr-2 transition-transform duration-300 group-hover:scale-110" />
-              <span className="hidden lg:inline">{label}</span>
-            </Button>
-          ))}
-        </nav>
+       
 
         {/* Menú móvil */}
         <Button

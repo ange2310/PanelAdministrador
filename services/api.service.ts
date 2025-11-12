@@ -180,19 +180,24 @@ class ApiService {
     try {
       console.log('Enviando invitación a:', data.email)
       
+      // IMPORTANTE: El backend espera estos campos exactos
+      const payload = {
+        nombreCompleto: data.nombreCompleto,
+        email: data.email,  // El backend usa "email", no "correo"
+        rol: data.rol,
+        idMedico: null  // Debe ser null para médicos
+      }
+      
+      console.log('Payload de invitación:', payload)
+      
       const response = await fetch(`${this.baseUrl}/api/usuarios-autenticacion/crearInvitacion`, {
         method: 'POST',
         headers: this.getAuthHeaders(),
-        body: JSON.stringify({
-          nombreCompleto: data.nombreCompleto,
-          email: data.email,
-          rol: data.rol,
-          idMedico: null
-        }),
+        body: JSON.stringify(payload),
       })
 
       const result = await this.handleResponse(response)
-      console.log('Invitación enviada exitosamente')
+      console.log('Invitación enviada exitosamente:', result)
       
       return result
     } catch (error: any) {

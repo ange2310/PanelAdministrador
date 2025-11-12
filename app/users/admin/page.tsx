@@ -97,16 +97,38 @@ function AdminDashboard() {
 
   const handleCreateDoctor = async (data: DoctorFormData) => {
     try {
+      console.log('Datos del formulario:', data)
+      
+      // Validar que el email existe
+      if (!data.correo || !data.correo.trim()) {
+        showError("El correo electrónico es obligatorio")
+        return
+      }
+
+      // Validar formato de email
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+      if (!emailRegex.test(data.correo)) {
+        showError("El formato del correo electrónico no es válido")
+        return
+      }
+      
       await apiService.inviteDoctor({
         nombreCompleto: data.nombre,
-        email: data.correo!,
+        email: data.correo,
         rol: "medico",
       })
       
-      alert("Invitación enviada exitosamente")
-    } catch (error) {
-      console.error("Error al invitar médico:", error);
-      alert("Error al enviar invitación")
+      showSuccess("Invitación enviada exitosamente al correo: " + data.correo)
+      setIsModalOpen(false)
+      
+      // Esperar un momento antes de recargar para que el usuario vea el mensaje
+      setTimeout(() => {
+        loadDoctors()
+      }, 1500)
+      
+    } catch (error: any) {
+      console.error("Error al invitar médico:", error)
+      showError(error.message || "Error al enviar invitación")
     }
   }
 

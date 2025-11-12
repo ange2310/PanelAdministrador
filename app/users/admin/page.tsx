@@ -128,15 +128,15 @@ function AdminDashboard() {
   const handleDeleteDoctor = async (doctor: Doctor) => {
     setConfirmModal({
       isOpen: true,
-      title: "Desactivar Médico",
-      message: `El backend no permite eliminar usuarios. Se desactivará la cuenta del Dr. ${doctor.nombre}.`,
+      title: "Desactivar Cuenta",
+      message: `Se desactivará permanentemente la cuenta del Dr. ${doctor.nombre}. Esta acción no se puede revertir.`,
       onConfirm: async () => {
         try {
           await apiService.deleteDoctor(doctor.idUsuario)
-          showSuccess("Cuenta desactivada exitosamente")
+          showSuccess("Cuenta desactivada permanentemente")
           loadDoctors()
         } catch (error: any) {
-          showError(error.message || "Error al desactivar médico")
+          showError(error.message || "Error al desactivar cuenta")
         }
       }
     })
@@ -455,23 +455,31 @@ return (
                             {doctor.status === 'activo' ? 'Active' : 'Inactive'}
                           </span>
                         </td>
-                        <td className="px-6 py-4 w-1/4">
+                        <td className="px-6 py-4">
                           <div className="flex items-center justify-end gap-2">
-                            <button
-                              onClick={() => openEditModal(doctor)}
-                              className="p-2 text-purple-600 hover:bg-purple-50 rounded-lg transition-colors"
-                              title="Editar"
-                            >
-                              <Edit className="w-4 h-4" />
-                            </button>
-                            <button
-                              onClick={() => handleDeleteDoctor(doctor)}
-                              className="px-3 py-2 bg-red-500 hover:bg-red-600 text-white rounded-lg transition-colors text-xs font-semibold flex items-center gap-1"
-                              title="Eliminar"
-                            >
-                              <Trash2 className="w-3.5 h-3.5" />
-                              Delete
-                            </button>
+                            {doctor.status === 'activo' ? (
+                              <>
+                                <button
+                                  onClick={() => openEditModal(doctor)}
+                                  className="p-2 text-purple-600 hover:bg-purple-50 rounded-lg transition-colors"
+                                  title="Desactivar"
+                                >
+                                  <Edit className="w-4 h-4" />
+                                </button>
+                                <button
+                                  onClick={() => handleDeleteDoctor(doctor)}
+                                  className="px-3 py-2 bg-red-500 hover:bg-red-600 text-white rounded-lg transition-colors text-xs font-semibold flex items-center gap-1"
+                                  title="Desactivar cuenta"
+                                >
+                                  <Trash2 className="w-3.5 h-3.5" />
+                                  Desactivar
+                                </button>
+                              </>
+                            ) : (
+                              <span className="text-xs text-gray-500 italic">
+                                Cuenta desactivada
+                              </span>
+                            )}
                           </div>
                         </td>
                       </tr>

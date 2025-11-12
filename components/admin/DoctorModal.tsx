@@ -130,7 +130,7 @@ export default function DoctorModal({
               <p className="text-red-800 text-sm font-medium leading-relaxed">{error}</p>
             </div>
           )}
-          
+
           {/* Nombre */}
           <div className="space-y-2">
             <label className="block text-sm font-semibold text-slate-700 mb-2.5">
@@ -183,10 +183,12 @@ export default function DoctorModal({
                 className="w-full px-4 py-3 text-base border-2 border-slate-200 rounded-xl focus:border-purple-500 focus:ring-4 focus:ring-purple-100 outline-none transition-all duration-200 bg-white"
                 disabled={isSubmitting}
               >
-                <option value="activo">✓ Activo</option>
-                <option value="invitado">⏳ Invitado</option>
-                <option value="inactivo">✕ Inactivo</option>
+                <option value="activo">Activo</option>
+                <option value="inactivo">Inactivo</option>
               </select>
+              <p className="text-xs text-amber-600 mt-1">
+                Nota: Una vez desactivado, no se puede reactivar desde el sistema
+              </p>
             </div>
           )}
 

@@ -109,31 +109,32 @@ function AdminDashboard() {
   }
 
   const handleUpdateDoctor = async (data: DoctorFormData) => {
-    if (!selectedDoctor) return
+  if (!selectedDoctor) return
 
-    try {
-      await apiService.updateDoctor(selectedDoctor.idUsuario, {
-        nombre: data.nombre,
-        status: data.status
-      })
-      
-      showSuccess("Médico actualizado exitosamente")
-      await loadDoctors()
-    } catch (error: any) {
-      throw new Error(error.message || "Error al actualizar médico")
-    }
+  try {
+    await apiService.updateDoctor(selectedDoctor.idUsuario, {
+      nombre: data.nombre,
+      status: data.status
+    })
+    
+    showSuccess("Médico actualizado exitosamente")
+    setIsModalOpen(false)
+    loadDoctors() // Recargar lista
+  } catch (error: any) {
+    showError(error.message || "Error al actualizar médico")
   }
+}
 
   const handleDeleteDoctor = async (doctor: Doctor) => {
     setConfirmModal({
       isOpen: true,
       title: "Eliminar Médico",
-      message: `¿Estás seguro de que deseas eliminar al Dr. ${doctor.nombre}? Esta acción no se puede deshacer.`,
+      message: `¿Estás seguro de eliminar al Dr. ${doctor.nombre}? Esta acción no se puede deshacer.`,
       onConfirm: async () => {
         try {
           await apiService.deleteDoctor(doctor.idUsuario)
           showSuccess("Médico eliminado exitosamente")
-          await loadDoctors()
+          loadDoctors() // Recargar lista
         } catch (error: any) {
           showError(error.message || "Error al eliminar médico")
         }
@@ -142,24 +143,24 @@ function AdminDashboard() {
   }
 
   const handleToggleStatus = async (doctor: Doctor) => {
-    const newStatus = doctor.status === 'activo' ? 'inactivo' : 'activo'
-    const action = newStatus === 'inactivo' ? 'desactivar' : 'activar'
-    
-    setConfirmModal({
-      isOpen: true,
-      title: `${action.charAt(0).toUpperCase() + action.slice(1)} Médico`,
-      message: `¿Estás seguro de que deseas ${action} al Dr. ${doctor.nombre}?`,
-      onConfirm: async () => {
-        try {
-          await apiService.toggleDoctorStatus(doctor.idUsuario, doctor.status)
-          showSuccess(`Médico ${action}do exitosamente`)
-          await loadDoctors()
-        } catch (error: any) {
-          showError(error.message || "Error al cambiar estado")
-        }
+  const newStatus = doctor.status === 'activo' ? 'inactivo' : 'activo'
+  const action = newStatus === 'inactivo' ? 'desactivar' : 'activar'
+  
+  setConfirmModal({
+    isOpen: true,
+    title: `${action.charAt(0).toUpperCase() + action.slice(1)} Médico`,
+    message: `¿Estás seguro de ${action} al Dr. ${doctor.nombre}?`,
+    onConfirm: async () => {
+      try {
+        await apiService.toggleDoctorStatus(doctor.idUsuario, doctor.status)
+        showSuccess(`Estado cambiado exitosamente`)
+        loadDoctors() // Recargar lista
+      } catch (error: any) {
+        showError(error.message || "Error al cambiar estado")
       }
-    })
-  }
+    }
+  })
+}
 
   const handleLogout = () => {
     setConfirmModal({
@@ -457,14 +458,14 @@ return (
                             <button
                               onClick={() => openEditModal(doctor)}
                               className="p-2 text-purple-600 hover:bg-purple-50 rounded-lg transition-colors"
-                              title="Edit"
+                              title="Editar"
                             >
                               <Edit className="w-4 h-4" />
                             </button>
                             <button
                               onClick={() => handleDeleteDoctor(doctor)}
                               className="px-3 py-2 bg-red-500 hover:bg-red-600 text-white rounded-lg transition-colors text-xs font-semibold flex items-center gap-1"
-                              title="Delete"
+                              title="Eliminar"
                             >
                               <Trash2 className="w-3.5 h-3.5" />
                               Delete

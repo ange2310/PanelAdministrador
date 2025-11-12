@@ -1,5 +1,6 @@
 /**
  * Servicio API Centralizado con Autenticación
+ * ADAPTADO al backend actual (no implementado completamente)
  */
 
 import { adminAuthService } from './auth.service'
@@ -62,7 +63,6 @@ class ApiService {
         console.error('❌ Error del servidor:', errorData)
         errorMessage = errorData.message || errorData.error || errorMessage
       } catch (e) {
-        // Si no se puede parsear el JSON, usar el texto de respuesta
         try {
           const errorText = await response.text()
           console.error('❌ Error del servidor (texto):', errorText)
@@ -79,34 +79,7 @@ class ApiService {
   }
 
   /**
-   * Crear nuevo médico
-   */
-  async createDoctor(data: CreateDoctorDto): Promise<any> {
-    try {
-      console.log('🚀 Creando médico:', data)
-      
-      const response = await fetch(`${this.baseUrl}/api/usuarios-autenticacion/crearUsuario`, {
-        method: 'POST',
-        headers: this.getAuthHeaders(),
-        body: JSON.stringify({
-          nombre: data.nombre,
-          fechaNacimiento: data.fechaNacimiento,
-          status: data.status || 'activo',
-          correo: data.correo,
-          contrasenia: data.contrasenia,
-          rol: 'medico',
-        }),
-      })
-
-      return await this.handleResponse(response)
-    } catch (error: any) {
-      console.error('💥 Error en createDoctor:', error)
-      throw error
-    }
-  }
-
-  /**
-   * Listar todos los médicos
+   * ✅ Listar todos los médicos - FUNCIONA
    */
   async getAllDoctors(): Promise<Doctor[]> {
     try {
@@ -131,7 +104,7 @@ class ApiService {
   }
 
   /**
-   * Obtener médico por ID
+   * ✅ Obtener médico por ID - FUNCIONA
    */
   async getDoctorById(doctorId: string): Promise<Doctor> {
     try {
@@ -153,86 +126,69 @@ class ApiService {
     }
   }
 
-  /**
-   * Actualizar médico
-   */
-  async updateDoctor(doctorId: string, data: UpdateDoctorDto): Promise<any> {
-    try {
-      console.log('🔄 Actualizando médico:', doctorId, data)
-      
-      // Construir el body solo con los campos que están presentes
-      const updateData: any = {}
-      
-      if (data.nombre !== undefined) {
-        updateData.nombre = data.nombre
-      }
-      
-      if (data.fechaNacimiento !== undefined) {
-        updateData.fechaNacimiento = data.fechaNacimiento
-      }
-      
-      if (data.status !== undefined) {
-        updateData.status = data.status
-      }
-
-      console.log('📦 Datos a enviar:', updateData)
-      
-      const response = await fetch(
-        `${this.baseUrl}/api/usuarios-autenticacion/actualizarPerfil/${doctorId}`,
-        {
-          method: 'PATCH',
-          headers: this.getAuthHeaders(),
-          body: JSON.stringify(updateData),
-        }
-      )
-
-      const result = await this.handleResponse(response)
-      console.log('✅ Médico actualizado exitosamente')
-      
-      return result
-    } catch (error: any) {
-      console.error('💥 Error en updateDoctor:', error)
-      throw error
-    }
-  }
-
-  /**
-   * Eliminar médico
-   */
-  async deleteDoctor(doctorId: string): Promise<any> {
-    try {
-      console.log('🗑️ Eliminando médico:', doctorId)
-      
-      const response = await fetch(
-        `${this.baseUrl}/api/usuarios-autenticacion/borrarPerfil/${doctorId}`,
-        {
-          method: 'DELETE',
-          headers: this.getAuthHeaders(),
-        }
-      )
-
-      const result = await this.handleResponse(response)
-      console.log('✅ Médico eliminado exitosamente')
-      
-      return result
-    } catch (error: any) {
-      console.error('💥 Error en deleteDoctor:', error)
-      throw error
-    }
-  }
-
-  /**
-   * Cambiar estado del médico
-   */
-  async toggleDoctorStatus(doctorId: string, currentStatus: string): Promise<any> {
-    const newStatus = currentStatus === 'activo' ? 'inactivo' : 'activo'
-    console.log(`🔀 Cambiando estado de ${currentStatus} a ${newStatus}`)
+ /**
+ * Actualizar médico - AHORA FUNCIONAL
+ */
+async updateDoctor(doctorId: string, data: UpdateDoctorDto): Promise<any> {
+  try {
+    console.log('Actualizando médico ID:', doctorId, 'con datos:', data)
     
-    return this.updateDoctor(doctorId, { status: newStatus })
+    const response = await fetch(
+      `${this.baseUrl}/api/usuarios-autenticacion/actualizarPerfil/${doctorId}`,
+      {
+        method: 'PATCH',
+        headers: this.getAuthHeaders(),
+        body: JSON.stringify(data),
+      }
+    )
+
+    const result = await this.handleResponse(response)
+    console.log('Médico actualizado exitosamente')
+    
+    return result
+  } catch (error: any) {
+    console.error('Error en updateDoctor:', error)
+    throw error
   }
+}
+
+/**
+ * Eliminar médico - AHORA FUNCIONAL
+ */
+async deleteDoctor(doctorId: string): Promise<any> {
+  try {
+    console.log('Eliminando médico ID:', doctorId)
+    
+    const response = await fetch(
+      `${this.baseUrl}/api/usuarios-autenticacion/borrarPerfil/${doctorId}`,
+      {
+        method: 'DELETE',
+        headers: this.getAuthHeaders(),
+      }
+    )
+
+    const result = await this.handleResponse(response)
+    console.log('Médico eliminado exitosamente')
+    
+    return result
+  } catch (error: any) {
+    console.error('Error en deleteDoctor:', error)
+    throw error
+  }
+}
+
+/**
+ * Cambiar estado del médico - FUNCIONAL
+ */
+async toggleDoctorStatus(doctorId: string, currentStatus: string): Promise<any> {
+  const newStatus = currentStatus === 'activo' ? 'inactivo' : 'activo'
+  console.log(`Cambiando estado de ${currentStatus} a ${newStatus}`)
+  
+  return this.updateDoctor(doctorId, { status: newStatus })
+}
 
   /**
-   * Invitar doctor
+   * ✅ Invitar doctor - FUNCIONA CORRECTAMENTE
    */
   async inviteDoctor(data: { nombreCompleto: string; email: string; rol: string }) {
     try {
@@ -245,7 +201,7 @@ class ApiService {
           nombreCompleto: data.nombreCompleto,
           email: data.email,
           rol: data.rol,
-          idMedico: null // es null porque el admin invita médicos
+          idMedico: null
         }),
       })
 
@@ -260,7 +216,7 @@ class ApiService {
   }
 
   /**
-   * Verificar invitación
+   * ✅ Verificar invitación - FUNCIONA CORRECTAMENTE
    */
   async verificarInvitacion(token: string) {
     try {
@@ -284,7 +240,6 @@ class ApiService {
         email: data.invitacion?.correo || data.invitacion?.email,
         rol: data.invitacion?.rol,
         nombreCompleto: data.invitacion?.nombreCompleto,
-        // idMedico: data.invitacion?.idMedico || undefined
       }
     } catch (error: any) {
       console.error('💥 Error en verificarInvitacion:', error)
@@ -293,7 +248,7 @@ class ApiService {
   }
 
   /**
-   * Registrar médico (completar registro después de invitación)
+   * ✅ Registrar médico - FUNCIONA CORRECTAMENTE
    */
   async registrarMedico(data: {
     nombre: string

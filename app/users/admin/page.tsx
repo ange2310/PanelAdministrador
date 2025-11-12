@@ -109,58 +109,61 @@ function AdminDashboard() {
   }
 
   const handleUpdateDoctor = async (data: DoctorFormData) => {
-  if (!selectedDoctor) return
+    if (!selectedDoctor) return
 
-  try {
-    await apiService.updateDoctor(selectedDoctor.idUsuario, {
-      nombre: data.nombre,
-      status: data.status
-    })
-    
-    showSuccess("Médico actualizado exitosamente")
-    setIsModalOpen(false)
-    loadDoctors() // Recargar lista
-  } catch (error: any) {
-    showError(error.message || "Error al actualizar médico")
+    try {
+      if (data.status === 'inactivo' && selectedDoctor.status === 'activo') {
+        await apiService.toggleDoctorStatus(selectedDoctor.idUsuario, selectedDoctor.status)
+        showSuccess("Médico desactivado exitosamente")
+      } else {
+        showError("El backend solo permite desactivar usuarios")
+      }
+      
+      setIsModalOpen(false)
+      loadDoctors()
+    } catch (error: any) {
+      showError(error.message || "Error al actualizar médico")
+    }
   }
-}
 
   const handleDeleteDoctor = async (doctor: Doctor) => {
     setConfirmModal({
       isOpen: true,
-      title: "Eliminar Médico",
-      message: `¿Estás seguro de eliminar al Dr. ${doctor.nombre}? Esta acción no se puede deshacer.`,
+      title: "Desactivar Médico",
+      message: `El backend no permite eliminar usuarios. Se desactivará la cuenta del Dr. ${doctor.nombre}.`,
       onConfirm: async () => {
         try {
           await apiService.deleteDoctor(doctor.idUsuario)
-          showSuccess("Médico eliminado exitosamente")
-          loadDoctors() // Recargar lista
+          showSuccess("Cuenta desactivada exitosamente")
+          loadDoctors()
         } catch (error: any) {
-          showError(error.message || "Error al eliminar médico")
+          showError(error.message || "Error al desactivar médico")
         }
       }
     })
   }
 
   const handleToggleStatus = async (doctor: Doctor) => {
-  const newStatus = doctor.status === 'activo' ? 'inactivo' : 'activo'
-  const action = newStatus === 'inactivo' ? 'desactivar' : 'activar'
-  
-  setConfirmModal({
-    isOpen: true,
-    title: `${action.charAt(0).toUpperCase() + action.slice(1)} Médico`,
-    message: `¿Estás seguro de ${action} al Dr. ${doctor.nombre}?`,
-    onConfirm: async () => {
-      try {
-        await apiService.toggleDoctorStatus(doctor.idUsuario, doctor.status)
-        showSuccess(`Estado cambiado exitosamente`)
-        loadDoctors() // Recargar lista
-      } catch (error: any) {
-        showError(error.message || "Error al cambiar estado")
-      }
+    if (doctor.status === 'inactivo') {
+      showError("El backend no permite reactivar usuarios")
+      return
     }
-  })
-}
+    
+    setConfirmModal({
+      isOpen: true,
+      title: "Desactivar Médico",
+      message: `¿Estás seguro de desactivar al Dr. ${doctor.nombre}?`,
+      onConfirm: async () => {
+        try {
+          await apiService.toggleDoctorStatus(doctor.idUsuario, doctor.status)
+          showSuccess("Médico desactivado exitosamente")
+          loadDoctors()
+        } catch (error: any) {
+          showError(error.message || "Error al cambiar estado")
+        }
+      }
+    })
+  }
 
   const handleLogout = () => {
     setConfirmModal({

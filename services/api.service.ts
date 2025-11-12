@@ -1,8 +1,3 @@
-/**
- * Servicio API Centralizado con Autenticación
- * ADAPTADO al backend actual (no implementado completamente)
- */
-
 import { adminAuthService } from './auth.service'
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://api.devcorebits.com'
@@ -39,9 +34,6 @@ class ApiService {
     this.baseUrl = API_URL
   }
 
-  /**
-   * Obtener headers con autenticación
-   */
   private getAuthHeaders(): HeadersInit {
     const token = adminAuthService.getAccessToken()
     
@@ -51,24 +43,21 @@ class ApiService {
     }
   }
 
-  /**
-   * Manejar errores de respuesta
-   */
   private async handleResponse(response: Response) {
     if (!response.ok) {
       let errorMessage = 'Error en la solicitud'
       
       try {
         const errorData = await response.json()
-        console.error('❌ Error del servidor:', errorData)
+        console.error('Error del servidor:', errorData)
         errorMessage = errorData.message || errorData.error || errorMessage
       } catch (e) {
         try {
           const errorText = await response.text()
-          console.error('❌ Error del servidor (texto):', errorText)
+          console.error('Error del servidor texto:', errorText)
           if (errorText) errorMessage = errorText
         } catch (e2) {
-          console.error('❌ No se pudo leer el error')
+          console.error('No se pudo leer el error')
         }
       }
       
@@ -78,12 +67,9 @@ class ApiService {
     return response.json()
   }
 
-  /**
-   * ✅ Listar todos los médicos - FUNCIONA
-   */
   async getAllDoctors(): Promise<Doctor[]> {
     try {
-      console.log('📋 Obteniendo lista de médicos...')
+      console.log('Obteniendo lista de médicos...')
       
       const response = await fetch(`${this.baseUrl}/api/usuarios-autenticacion/buscarUsuarios`, {
         method: 'GET',
@@ -91,24 +77,19 @@ class ApiService {
       })
 
       const data = await this.handleResponse(response)
-      
-      // Filtrar solo los médicos
       const doctors = data.usuarios?.filter((user: any) => user.rol === 'medico') || []
-      console.log(`✅ ${doctors.length} médicos encontrados`)
+      console.log(`${doctors.length} médicos encontrados`)
       
       return doctors
     } catch (error: any) {
-      console.error('💥 Error en getAllDoctors:', error)
+      console.error('Error en getAllDoctors:', error)
       throw error
     }
   }
 
-  /**
-   * ✅ Obtener médico por ID - FUNCIONA
-   */
   async getDoctorById(doctorId: string): Promise<Doctor> {
     try {
-      console.log('🔍 Obteniendo médico ID:', doctorId)
+      console.log('Obteniendo médico ID:', doctorId)
       
       const response = await fetch(
         `${this.baseUrl}/api/usuarios-autenticacion/buscarUsuario/${doctorId}`,
@@ -121,78 +102,68 @@ class ApiService {
       const data = await this.handleResponse(response)
       return data.usuarios?.[0]
     } catch (error: any) {
-      console.error('💥 Error en getDoctorById:', error)
+      console.error('Error en getDoctorById:', error)
       throw error
     }
   }
 
- /**
- * Actualizar médico - AHORA FUNCIONAL
- */
-async updateDoctor(doctorId: string, data: UpdateDoctorDto): Promise<any> {
-  try {
-    console.log('Actualizando médico ID:', doctorId, 'con datos:', data)
+  async updateDoctor(doctorId: string, data: UpdateDoctorDto): Promise<any> {
+    console.warn('ADVERTENCIA: El backend no soporta actualización de perfil')
+    console.log('Solo se puede cambiar estado a inactivo')
     
-    const response = await fetch(
-      `${this.baseUrl}/api/usuarios-autenticacion/actualizarPerfil/${doctorId}`,
-      {
+    if (data.status === 'inactivo') {
+      return this.toggleDoctorStatus(doctorId, 'activo')
+    }
+    
+    throw new Error('El backend solo permite desactivar usuarios, no editar otros campos')
+  }
+
+  async deleteDoctor(doctorId: string): Promise<any> {
+    console.warn('ADVERTENCIA: El backend no soporta eliminación')
+    console.log('En su lugar, desactivando cuenta...')
+    
+    try {
+      const response = await fetch(`${this.baseUrl}/api/usuarios-autenticacion/cuentaInactiva`, {
         method: 'PATCH',
         headers: this.getAuthHeaders(),
-        body: JSON.stringify(data),
-      }
-    )
+        body: JSON.stringify({ userId: doctorId }),
+      })
 
-    const result = await this.handleResponse(response)
-    console.log('Médico actualizado exitosamente')
-    
-    return result
-  } catch (error: any) {
-    console.error('Error en updateDoctor:', error)
-    throw error
+      const result = await this.handleResponse(response)
+      console.log('Cuenta desactivada exitosamente')
+      
+      return result
+    } catch (error: any) {
+      console.error('Error en deleteDoctor:', error)
+      throw error
+    }
   }
-}
 
-/**
- * Eliminar médico - AHORA FUNCIONAL
- */
-async deleteDoctor(doctorId: string): Promise<any> {
-  try {
-    console.log('Eliminando médico ID:', doctorId)
-    
-    const response = await fetch(
-      `${this.baseUrl}/api/usuarios-autenticacion/borrarPerfil/${doctorId}`,
-      {
-        method: 'DELETE',
-        headers: this.getAuthHeaders(),
+  async toggleDoctorStatus(doctorId: string, currentStatus: string): Promise<any> {
+    if (currentStatus === 'activo') {
+      try {
+        console.log('Desactivando cuenta...')
+        
+        const response = await fetch(`${this.baseUrl}/api/usuarios-autenticacion/cuentaInactiva`, {
+          method: 'PATCH',
+          headers: this.getAuthHeaders(),
+          body: JSON.stringify({ userId: doctorId }),
+        })
+
+        const result = await this.handleResponse(response)
+        return result
+      } catch (error: any) {
+        console.error('Error al cambiar estado:', error)
+        throw error
       }
-    )
-
-    const result = await this.handleResponse(response)
-    console.log('Médico eliminado exitosamente')
-    
-    return result
-  } catch (error: any) {
-    console.error('Error en deleteDoctor:', error)
-    throw error
+    } else {
+      throw new Error('El backend solo permite desactivar usuarios, no reactivarlos')
+    }
   }
-}
 
-/**
- * Cambiar estado del médico - FUNCIONAL
- */
-async toggleDoctorStatus(doctorId: string, currentStatus: string): Promise<any> {
-  const newStatus = currentStatus === 'activo' ? 'inactivo' : 'activo'
-  console.log(`Cambiando estado de ${currentStatus} a ${newStatus}`)
-  
-  return this.updateDoctor(doctorId, { status: newStatus })
-}
-
-  /**
-   * ✅ Invitar doctor - FUNCIONA CORRECTAMENTE
-   */
   async inviteDoctor(data: { nombreCompleto: string; email: string; rol: string }) {
     try {
-      console.log('📧 Enviando invitación a:', data.email)
+      console.log('Enviando invitación a:', data.email)
       
       const response = await fetch(`${this.baseUrl}/api/usuarios-autenticacion/crearInvitacion`, {
         method: 'POST',
@@ -206,21 +177,18 @@ async toggleDoctorStatus(doctorId: string, currentStatus: string): Promise<any> 
       })
 
       const result = await this.handleResponse(response)
-      console.log('✅ Invitación enviada exitosamente')
+      console.log('Invitación enviada exitosamente')
       
       return result
     } catch (error: any) {
-      console.error('💥 Error en inviteDoctor:', error)
+      console.error('Error en inviteDoctor:', error)
       throw error
     }
   }
 
-  /**
-   * ✅ Verificar invitación - FUNCIONA CORRECTAMENTE
-   */
   async verificarInvitacion(token: string) {
     try {
-      console.log('🔍 Verificando token de invitación...')
+      console.log('Verificando token de invitación...')
       
       const response = await fetch(
         `${this.baseUrl}/api/usuarios-autenticacion/verificarToken?token=${token}`,
@@ -234,7 +202,7 @@ async toggleDoctorStatus(doctorId: string, currentStatus: string): Promise<any> 
       )
 
       const data = await this.handleResponse(response)
-      console.log('✅ Token válido:', data)
+      console.log('Token válido:', data)
 
       return {
         email: data.invitacion?.correo || data.invitacion?.email,
@@ -242,14 +210,11 @@ async toggleDoctorStatus(doctorId: string, currentStatus: string): Promise<any> 
         nombreCompleto: data.invitacion?.nombreCompleto,
       }
     } catch (error: any) {
-      console.error('💥 Error en verificarInvitacion:', error)
+      console.error('Error en verificarInvitacion:', error)
       throw error
     }
   }
 
-  /**
-   * ✅ Registrar médico - FUNCIONA CORRECTAMENTE
-   */
   async registrarMedico(data: {
     nombre: string
     fechaNacimiento?: string
@@ -258,7 +223,7 @@ async toggleDoctorStatus(doctorId: string, currentStatus: string): Promise<any> 
     rol: string
   }) {
     try {
-      console.log('📝 Registrando médico:', data.correo)
+      console.log('Registrando médico:', data.correo)
       
       const response = await fetch(`${this.baseUrl}/api/usuarios-autenticacion/signUp`, {
         method: 'POST',
@@ -269,11 +234,11 @@ async toggleDoctorStatus(doctorId: string, currentStatus: string): Promise<any> 
       })
 
       const result = await this.handleResponse(response)
-      console.log('✅ Médico registrado exitosamente')
+      console.log('Médico registrado exitosamente')
       
       return result
     } catch (error: any) {
-      console.error('💥 Error en registrarMedico:', error)
+      console.error('Error en registrarMedico:', error)
       throw error
     }
   }

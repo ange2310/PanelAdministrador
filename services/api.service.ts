@@ -4,7 +4,7 @@
 
 import { adminAuthService } from './auth.service'
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000'
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://api.devcorebits.com'
 
 export interface CreateDoctorDto {
   nombre: string

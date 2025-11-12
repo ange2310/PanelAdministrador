@@ -5,7 +5,7 @@ import { X, Loader2, User, Mail, Calendar, Key, AlertCircle } from "lucide-react
 //import { Dialog, DialogContent } from "@/components/ui/dialog"
 import { Button } from "@/components/ui/button"
 import { profileService } from "@/services/profile.service"
-import 
+import * as Dialog from "@radix-ui/react-dialog"
 
 interface UserProfile {
   idUsuario: string

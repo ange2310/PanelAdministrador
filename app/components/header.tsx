@@ -25,22 +25,6 @@ export default function AdminHeader() {
             </div>
             <span className="hidden sm:block font-medium">Do U Remember</span>
           </Link>
-
-          {/* Navegación */}
-          <nav className="hidden md:flex items-center space-x-8">
-            <Link href="/" className="text-gray-600 hover:text-purple-600 transition-colors text-sm font-medium">
-              Inicio
-            </Link>
-            <Link href="/about" className="text-gray-600 hover:text-purple-600 transition-colors text-sm font-medium">
-              Nosotros
-            </Link>
-            <Link href="/services" className="text-gray-600 hover:text-purple-600 transition-colors text-sm font-medium">
-              Servicios
-            </Link>
-            <Link href="/contact" className="text-gray-600 hover:text-purple-600 transition-colors text-sm font-medium">
-              Contacto
-            </Link>
-          </nav>
         </div>
       </div>
     </header>

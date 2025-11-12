@@ -341,7 +341,7 @@ class AdminAuthService {
   logout(): void {
     if (typeof window !== 'undefined') {
       localStorage.removeItem(this.SESSION_KEY)
-      window.location.href = '/loginPage'
+      window.location.href = '/'
     }
   }
 

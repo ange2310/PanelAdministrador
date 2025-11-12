@@ -250,6 +250,9 @@ class AdminAuthService {
   async login(email: string, password: string): Promise<AdminSession> {
     try {
       console.log('🚀 Iniciando login de administrador...')
+      console.log('📧 Email:', email)
+      console.log('🔗 API URL:', API_URL)
+      console.log('🌐 Endpoint completo:', `${API_URL}/api/usuarios-autenticacion/login`)
       
       const response = await fetch(`${API_URL}/api/usuarios-autenticacion/login`, {
         method: 'POST',

@@ -28,6 +28,7 @@ import Footer from "@/app/components/footer"
 import { withAuth } from "@/middleware/withAuth"
 
 function AdminDashboard() {
+  const [activeTab, setActiveTab] = useState<'doctors' | 'users'>('doctors')
   const [doctors, setDoctors] = useState<Doctor[]>([])
   const [filteredDoctors, setFilteredDoctors] = useState<Doctor[]>([])
   const [searchQuery, setSearchQuery] = useState("")
@@ -237,6 +238,32 @@ return (
             </div>
           </div>
         </div>
+
+        <div className="max-w-7xl mx-auto px-6 pt-6">
+          <div className="flex gap-4 border-b border-gray-200 mb-8">
+            <button
+              onClick={() => setActiveTab('doctors')}
+              className={`px-6 py-3 font-semibold text-sm transition-all ${
+                activeTab === 'doctors'
+                  ? 'text-purple-600 border-b-2 border-purple-600'
+                  : 'text-gray-600 hover:text-gray-900'
+              }`}
+            >
+              Gestión de Médicos
+            </button>
+            <button
+              onClick={() => setActiveTab('users')}
+              className={`px-6 py-3 font-semibold text-sm transition-all ${
+                activeTab === 'users'
+                  ? 'text-purple-600 border-b-2 border-purple-600'
+                  : 'text-gray-600 hover:text-gray-900'
+              }`}
+            >
+              Todos los Usuarios
+            </button>
+          </div>
+        </div>
+
 
         <div className="max-w-7xl mx-auto px-6 py-8">
           {/* Mensajes */}
@@ -458,25 +485,16 @@ return (
                         <td className="px-6 py-4">
                           <div className="flex items-center justify-end gap-2">
                             {doctor.status === 'activo' ? (
-                              <>
-                                <button
-                                  onClick={() => openEditModal(doctor)}
-                                  className="p-2 text-purple-600 hover:bg-purple-50 rounded-lg transition-colors"
-                                  title="Desactivar"
-                                >
-                                  <Edit className="w-4 h-4" />
-                                </button>
-                                <button
-                                  onClick={() => handleDeleteDoctor(doctor)}
-                                  className="px-3 py-2 bg-red-500 hover:bg-red-600 text-white rounded-lg transition-colors text-xs font-semibold flex items-center gap-1"
-                                  title="Desactivar cuenta"
-                                >
-                                  <Trash2 className="w-3.5 h-3.5" />
-                                  Desactivar
-                                </button>
-                              </>
+                              <button
+                                onClick={() => handleDeleteDoctor(doctor)}
+                                className="px-3 py-2 bg-red-500 hover:bg-red-600 text-white rounded-lg transition-colors text-xs font-semibold flex items-center gap-1"
+                                title="Desactivar cuenta"
+                              >
+                                <Trash2 className="w-3.5 h-3.5" />
+                                Desactivar
+                              </button>
                             ) : (
-                              <span className="text-xs text-gray-500 italic">
+                              <span className="text-xs text-gray-500 italic px-3 py-2">
                                 Cuenta desactivada
                               </span>
                             )}

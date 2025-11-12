@@ -257,6 +257,46 @@ class ApiService {
       throw error
     }
   }
+
+  async getAllUsers(): Promise<any[]> {
+    try {
+      console.log('Obteniendo todos los usuarios...')
+      
+      const response = await fetch(`${this.baseUrl}/api/usuarios-autenticacion/buscarUsuarios`, {
+        method: 'GET',
+        headers: this.getAuthHeaders(),
+      })
+
+      const data = await this.handleResponse(response)
+      const users = data.usuarios || []
+      console.log(`${users.length} usuarios encontrados`)
+      
+      return users
+    } catch (error: any) {
+      console.error('Error en getAllUsers:', error)
+      throw error
+    }
+  }
+
+  async deactivateUser(userId: string): Promise<any> {
+    try {
+      console.log('Desactivando usuario ID:', userId)
+      
+      const response = await fetch(`${this.baseUrl}/api/usuarios-autenticacion/cuentaInactiva`, {
+        method: 'PATCH',
+        headers: this.getAuthHeaders(),
+        body: JSON.stringify({ userId }),
+      })
+
+      const result = await this.handleResponse(response)
+      console.log('Usuario desactivado exitosamente')
+      
+      return result
+    } catch (error: any) {
+      console.error('Error en deactivateUser:', error)
+      throw error
+    }
+  }
 }
 
 export const apiService = new ApiService()

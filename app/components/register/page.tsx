@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { Suspense, useEffect, useState } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { User, Mail, Lock, CheckCircle, AlertCircle } from "lucide-react";
 import { apiService } from "@/services/api.service";
@@ -91,7 +91,8 @@ const Button = ({ type = "button", variant = "primary", onClick, disabled, class
 // Utilidad para combinar clases
 const cn = (...classes: (string | boolean | undefined)[]) => classes.filter(Boolean).join(' ');
 
-export default function RegistroInvitado() {
+// Componente interno que usa useSearchParams
+function RegistroInvitadoContent() {
   const params = useSearchParams();
   const token = params.get("token");
   const router = useRouter();
@@ -201,7 +202,7 @@ export default function RegistroInvitado() {
     setErrors({});
     
     try {
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000'}/api/usuarios-autenticacion/completarRegistro`, {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'https://api.devcorebits.com'}/api/usuarios-autenticacion/completarRegistro`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -497,5 +498,21 @@ export default function RegistroInvitado() {
         </div>
       </div>
     </div>
+  );
+}
+
+// Componente principal con Suspense
+export default function RegistroInvitado() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen bg-gradient-to-br from-gray-900 via-blue-900 to-gray-900 flex items-center justify-center p-4">
+        <div className="bg-gray-800/50 backdrop-blur-sm rounded-2xl shadow-xl p-8 text-center">
+          <div className="w-16 h-16 border-4 border-blue-500/30 border-t-blue-500 rounded-full animate-spin mx-auto mb-4"></div>
+          <p className="text-white text-lg">Cargando...</p>
+        </div>
+      </div>
+    }>
+      <RegistroInvitadoContent />
+    </Suspense>
   );
 }
